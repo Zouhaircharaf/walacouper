@@ -43,13 +43,19 @@
       <div class="flex items-start sm:items-center gap-2 text-xs sm:text-sm font-semibold">
         <span class="shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-xs font-extrabold">✓</span>
         <span>
-          Mode administrateur actif. Gérez vos produits et synchronisez facilement.
+          Mode administrateur actif. Gérez vos produits et synchronisez avec GitHub.
         </span>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button type="button" id="btnAddProductAdminBar" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold bg-[#0f294a] hover:bg-[#173b69] text-white shadow transition-all">
           <span class="text-[#f97316] font-black text-sm leading-none">+</span>
           Ajouter un produit
+        </button>
+        <button type="button" id="btnOpenAdminModal" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition-all">
+          🛠️ Panneau Admin
+        </button>
+        <button type="button" id="btnLogoutAdmin" class="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold bg-rose-900/60 hover:bg-rose-900 text-white transition-all" title="Quitter le mode admin">
+          Quitter
         </button>
       </div>
     </div>
@@ -83,6 +89,9 @@
           </svg>
           Page Facebook
         </a>
+        <button type="button" id="btnOpenLoginModal" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#0f294a] hover:bg-[#173b69] text-white shadow-sm transition-all">
+          <span>Mode Admin</span>
+        </button>
       </div>
     </div>
   </header>
@@ -141,29 +150,147 @@
   <!-- ===================================================================== -->
   <main class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-5 sm:py-8">
     <div id="productsGrid" class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-      
-      <!-- Exemple de Carte Produit -->
-      <article class="product-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
-        <div>
-          <div class="relative aspect-[4/3] bg-slate-50 overflow-hidden border-b border-slate-100 flex items-center justify-center">
-            <span class="text-xs font-bold text-slate-400">[Image Produit]</span>
-            <span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-extrabold bg-[#0f294a] text-white shadow">Bon Plan Amazon</span>
-          </div>
-          <div class="p-3 sm:p-4">
-            <span class="inline-block text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-[#f97316] mb-1">Tech</span>
-            <h2 class="text-sm sm:text-base font-extrabold text-slate-900 leading-snug line-clamp-2">Exemple de produit</h2>
-            <p class="mt-1.5 text-xs text-slate-600 leading-relaxed line-clamp-2">Description rapide du produit disponible sur Amazon Canada.</p>
-          </div>
-        </div>
-        <div class="px-3 pb-3 sm:px-4 sm:pb-4 pt-1">
-          <a href="https://www.amazon.ca" target="_blank" rel="nofollow sponsored noopener" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-[#f97316] hover:bg-orange-600 active:scale-[0.99] transition-all shadow-sm">
-            <span>Voir l'offre sur Amazon ➔</span>
-          </a>
-        </div>
-      </article>
-
+      <!-- Les produits seront injectés dynamiquement ici -->
     </div>
   </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODALE DE CONNEXION ADMIN (MOT DE PASSE)                              -->
+  <!-- ===================================================================== -->
+  <div id="loginModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200 relative animate-in fade-in zoom-in-95 duration-150">
+      <div class="w-12 h-12 rounded-2xl bg-[#0f294a] text-[#f97316] flex items-center justify-center font-black text-xl mb-4 shadow">
+        🔒
+      </div>
+      <h3 class="text-lg font-extrabold text-slate-900">Accès Administrateur</h3>
+      <p class="text-xs text-slate-500 mt-1">Veuillez saisir le mot de passe administrateur pour accéder à la gestion de la boutique.</p>
+      
+      <form id="loginForm" class="mt-4 space-y-3">
+        <div>
+          <label for="adminPasswordInput" class="block text-xs font-bold text-slate-700 mb-1">Mot de passe</label>
+          <input type="password" id="adminPasswordInput" required placeholder="Entrez le mot de passe" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#f97316]">
+          <p id="loginErrorMsg" class="text-xs text-rose-600 font-semibold mt-1 hidden">Mot de passe incorrect.</p>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" id="btnCloseLoginModal" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Annuler</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#0f294a] hover:bg-[#173b69] text-white shadow">Valider</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODALE / PANNEAU DE GESTION ADMIN (AVEC EXPORT GITHUB)                -->
+  <!-- ===================================================================== -->
+  <div id="adminModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col border border-slate-200 overflow-hidden">
+      <div class="p-4 sm:p-5 bg-[#0f294a] text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🛠️</span>
+          <div>
+            <h3 class="text-base font-extrabold">Panneau d'Administration Walacouper</h3>
+            <p class="text-[11px] text-slate-300">Gérez vos produits et synchronisez avec GitHub</p>
+          </div>
+        </div>
+        <button type="button" id="btnCloseAdminModal" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white font-bold transition-colors">✕</button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
+        <!-- Actions Rapides -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>
+            <h4 class="text-xs font-black uppercase tracking-wider text-slate-700">Actions Produits</h4>
+            <p class="text-xs text-slate-500 mt-0.5">Ajoutez une nouvelle trouvaille Amazon Canada.</p>
+          </div>
+          <button type="button" id="btnAddNewProductModal" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold bg-[#f97316] hover:bg-orange-600 text-white shadow">
+            + Ajouter un produit
+          </button>
+        </div>
+
+        <!-- Section Synchronisation GitHub -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🐙</span>
+            <div>
+              <h4 class="text-xs font-black uppercase tracking-wider text-emerald-900">Synchronisation GitHub</h4>
+              <p class="text-xs text-emerald-700">Exportez ou mettez à jour votre code source directement sur GitHub.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button type="button" id="btnExportJSON" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition-colors">
+              💾 Exporter les données (JSON)
+            </button>
+            <button type="button" id="btnGitHubHelp" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 transition-colors">
+              📖 Guide GitHub
+            </button>
+          </div>
+        </div>
+
+        <!-- Liste des produits existants dans l'admin -->
+        <div>
+          <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 mb-2">Produits actuels (<span id="adminProductCount">0</span>)</h4>
+          <div id="adminProductsList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <!-- Liste injectée par JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 sm:p-4 bg-slate-100 border-t border-slate-200 flex justify-end">
+        <button type="button" id="btnCloseAdminModalBottom" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-900 text-white transition-colors">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODALE FORMULAIRE PRODUIT (AJOUT / MODIFICATION)                      -->
+  <!-- ===================================================================== -->
+  <div id="productModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-6 border border-slate-200 relative max-h-[90vh] overflow-y-auto">
+      <h3 id="productModalTitle" class="text-lg font-extrabold text-slate-900 mb-1">Ajouter un produit</h3>
+      <p class="text-xs text-slate-500 mb-4">Renseignez les informations du bon plan Amazon.ca</p>
+
+      <form id="productForm" class="space-y-3.5">
+        <input type="hidden" id="productId">
+        <div>
+          <label for="prodTitle" class="block text-xs font-bold text-slate-700 mb-1">Titre du produit</label>
+          <input type="text" id="prodTitle" required placeholder="Ex: Couverture chauffante électrique" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#f97316]">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="prodCategory" class="block text-xs font-bold text-slate-700 mb-1">Catégorie</label>
+            <select id="prodCategory" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#f97316]">
+              <option value="Hiver">❄️ Hiver</option>
+              <option value="Maison">🏠 Maison</option>
+              <option value="Tech">📱 Tech</option>
+              <option value="Beauté">✨ Beauté</option>
+              <option value="Auto">🚗 Auto</option>
+            </select>
+          </div>
+          <div>
+            <label for="prodBadge" class="block text-xs font-bold text-slate-700 mb-1">Badge (optionnel)</label>
+            <input type="text" id="prodBadge" placeholder="Ex: -40% • Meilleure Vente" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#f97316]">
+          </div>
+        </div>
+        <div>
+          <label for="prodImage" class="block text-xs font-bold text-slate-700 mb-1">URL de l'image</label>
+          <input type="url" id="prodImage" required placeholder="https://images.unsplash.com/..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#f97316]">
+        </div>
+        <div>
+          <label for="prodLink" class="block text-xs font-bold text-slate-700 mb-1">Lien Affilié Amazon.ca</label>
+          <input type="url" id="prodLink" required placeholder="https://www.amazon.ca/dp/..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#f97316]">
+        </div>
+        <div>
+          <label for="prodDesc" class="block text-xs font-bold text-slate-700 mb-1">Description courte</label>
+          <textarea id="prodDesc" rows="3" required placeholder="Détails de l'offre, code promo éventuel..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#f97316]"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" id="btnCloseProductModal" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Annuler</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-extrabold bg-[#f97316] hover:bg-orange-600 text-white shadow">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ===================================================================== -->
   <!-- PIED DE PAGE                                                          -->
@@ -174,5 +301,315 @@
     </div>
   </footer>
 
+  <!-- ===================================================================== -->
+  <!-- SCRIPT JAVASCRIPT LOGIQUE & INTERACTIVITÉ                             -->
+  <!-- ===================================================================== -->
+  <script>
+    // Données initiales par défaut si localStorage est vide
+    const defaultProducts = [
+      {
+        id: "1",
+        title: "Gants tactiques étanches pour écran tactile",
+        category: "Hiver",
+        badge: "-35% • Hiver",
+        image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.amazon.ca",
+        description: "Idéal pour l'hiver canadien. Gardez vos mains au chaud tout en utilisant votre téléphone."
+      },
+      {
+        id: "2",
+        title: "Support téléphone magnétique pour voiture",
+        category: "Auto",
+        badge: "Meilleure Vente",
+        image: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.amazon.ca",
+        description: "Rotation à 360 degrés, fixation ultra-solide sur les grilles d'aération."
+      },
+      {
+        id: "3",
+        title: "Diffuseur d'huiles essentielles ultrasonique",
+        category: "Maison",
+        badge: "Coup de cœur",
+        image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=600&q=80",
+        link: "https://www.amazon.ca",
+        description: "Créez une ambiance relaxante chez vous avec LED 7 couleurs."
+      }
+    ];
+
+    let products = JSON.parse(localStorage.getItem('walacouper_products')) || defaultProducts;
+    let isAdmin = localStorage.getItem('walacouper_is_admin') === 'true';
+    let currentCategory = 'Tout';
+    let searchQuery = '';
+
+    // Éléments du DOM
+    const productsGrid = document.getElementById('productsGrid');
+    const searchInput = document.getElementById('searchInput');
+    const categoryPills = document.querySelectorAll('.cat-pill');
+    const productCountLabel = document.getElementById('productCountLabel');
+    
+    const adminStickyBar = document.getElementById('adminStickyBar');
+    const btnOpenLoginModal = document.getElementById('btnOpenLoginModal');
+    const loginModal = document.getElementById('loginModal');
+    const btnCloseLoginModal = document.getElementById('btnCloseLoginModal');
+    const loginForm = document.getElementById('loginForm');
+    const adminPasswordInput = document.getElementById('adminPasswordInput');
+    const loginErrorMsg = document.getElementById('loginErrorMsg');
+    const btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
+
+    const adminModal = document.getElementById('adminModal');
+    const btnOpenAdminModal = document.getElementById('btnOpenAdminModal');
+    const btnCloseAdminModal = document.getElementById('btnCloseAdminModal');
+    const btnCloseAdminModalBottom = document.getElementById('btnCloseAdminModalBottom');
+    const adminProductsList = document.getElementById('adminProductsList');
+    const adminProductCount = document.getElementById('adminProductCount');
+    const btnAddProductAdminBar = document.getElementById('btnAddProductAdminBar');
+    const btnAddNewProductModal = document.getElementById('btnAddNewProductModal');
+
+    const productModal = document.getElementById('productModal');
+    const productModalTitle = document.getElementById('productModalTitle');
+    const btnCloseProductModal = document.getElementById('btnCloseProductModal');
+    const productForm = document.getElementById('productForm');
+    const productIdInput = document.getElementById('productId');
+    const prodTitle = document.getElementById('prodTitle');
+    const prodCategory = document.getElementById('prodCategory');
+    const prodBadge = document.getElementById('prodBadge');
+    const prodImage = document.getElementById('prodImage');
+    const prodLink = document.getElementById('prodLink');
+    const prodDesc = document.getElementById('prodDesc');
+
+    const btnExportJSON = document.getElementById('btnExportJSON');
+    const btnGitHubHelp = document.getElementById('btnGitHubHelp');
+
+    // Initialisation
+    function initApp() {
+      renderProducts();
+      updateAdminUI();
+    }
+
+    // Affichage des produits
+    function renderProducts() {
+      let filtered = products.filter(p => {
+        const matchesCategory = currentCategory === 'Tout' || p.category === currentCategory;
+        const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              p.description.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      productCountLabel.textContent = `${filtered.length} offre${filtered.length > 1 ? 's' : ''} disponible${filtered.length > 1 ? 's' : ''}`;
+
+      if (filtered.length === 0) {
+        productsGrid.innerHTML = `
+          <div class="col-span-full py-12 text-center">
+            <div class="text-4xl mb-2">🔍</div>
+            <h3 class="text-base font-bold text-slate-700">Aucun produit trouvé</h3>
+            <p class="text-xs text-slate-500 mt-1">Essayez de modifier vos critères de recherche ou de catégorie.</p>
+          </div>
+        `;
+        return;
+      }
+
+      productsGrid.innerHTML = filtered.map(p => `
+        <article class="product-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div>
+            <div class="relative aspect-[4/3] bg-slate-100 overflow-hidden border-b border-slate-100 flex items-center justify-center">
+              <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80'">
+              ${p.badge ? `<span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-extrabold bg-[#0f294a] text-white shadow">${p.badge}</span>` : ''}
+              ${isAdmin ? `
+                <div class="absolute top-2.5 right-2.5 flex gap-1">
+                  <button onclick="editProduct('${p.id}')" class="w-7 h-7 rounded-lg bg-white/90 hover:bg-white text-slate-800 shadow flex items-center justify-center text-xs font-bold" title="Modifier">✏️</button>
+                  <button onclick="deleteProduct('${p.id}')" class="w-7 h-7 rounded-lg bg-rose-600/90 hover:bg-rose-600 text-white shadow flex items-center justify-center text-xs font-bold" title="Supprimer">🗑️</button>
+                </div>
+              ` : ''}
+            </div>
+            <div class="p-3 sm:p-4">
+              <span class="inline-block text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-[#f97316] mb-1">${p.category}</span>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900 leading-snug line-clamp-2">${p.title}</h2>
+              <p class="mt-1.5 text-xs text-slate-600 leading-relaxed line-clamp-2">${p.description}</p>
+            </div>
+          </div>
+          <div class="px-3 pb-3 sm:px-4 sm:pb-4 pt-1">
+            <a href="${p.link}" target="_blank" rel="nofollow sponsored noopener" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-[#f97316] hover:bg-orange-600 active:scale-[0.99] transition-all shadow-sm">
+              <span>Voir l'offre sur Amazon ➔</span>
+            </a>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    // Mise à jour de l'interface admin
+    function updateAdminUI() {
+      if (isAdmin) {
+        adminStickyBar.classList.remove('hidden');
+        btnOpenLoginModal.classList.add('hidden');
+      } else {
+        adminStickyBar.classList.add('hidden');
+        btnOpenLoginModal.classList.remove('hidden');
+      }
+      renderAdminProductsList();
+    }
+
+    function renderAdminProductsList() {
+      adminProductCount.textContent = products.length;
+      if (products.length === 0) {
+        adminProductsList.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Aucun produit enregistré.</p>`;
+        return;
+      }
+      adminProductsList.innerHTML = products.map(p => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <div class="flex items-center gap-2.5 truncate">
+            <img src="${p.image}" class="w-9 h-9 rounded-lg object-cover shrink-0" onerror="this.src='https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=100&q=80'">
+            <div class="truncate">
+              <p class="font-bold text-slate-900 truncate">${p.title}</p>
+              <p class="text-[10px] text-slate-500">${p.category} • ${p.badge || 'Sans badge'}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button onclick="editProduct('${p.id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 font-bold text-slate-700">Modifier</button>
+            <button onclick="deleteProduct('${p.id}')" class="px-2.5 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 font-bold text-rose-700">Supprimer</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Gestion du mot de passe Admin (Canada2026*)
+    btnOpenLoginModal.addEventListener('click', () => {
+      adminPasswordInput.value = '';
+      loginErrorMsg.classList.add('hidden');
+      loginModal.classList.remove('hidden');
+      adminPasswordInput.focus();
+    });
+
+    btnCloseLoginModal.addEventListener('click', () => loginModal.classList.add('hidden'));
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (adminPasswordInput.value === 'Canada2026*') {
+        isAdmin = true;
+        localStorage.setItem('walacouper_is_admin', 'true');
+        loginModal.classList.add('hidden');
+        updateAdminUI();
+        renderProducts();
+        // Ouvrir directement le panneau admin après connexion réussie
+        adminModal.classList.remove('hidden');
+      } else {
+        loginErrorMsg.classList.remove('hidden');
+        adminPasswordInput.focus();
+      }
+    });
+
+    btnLogoutAdmin.addEventListener('click', () => {
+      isAdmin = false;
+      localStorage.setItem('walacouper_is_admin', 'false');
+      updateAdminUI();
+      renderProducts();
+    });
+
+    // Gestion de la modale Admin
+    btnOpenAdminModal.addEventListener('click', () => adminModal.classList.remove('hidden'));
+    btnCloseAdminModal.addEventListener('click', () => adminModal.classList.add('hidden'));
+    btnCloseAdminModalBottom.addEventListener('click', () => adminModal.classList.add('hidden'));
+
+    // Gestion du formulaire d'ajout/modification produit
+    function openProductModal(product = null) {
+      productForm.reset();
+      if (product) {
+        productModalTitle.textContent = "Modifier le produit";
+        productIdInput.value = product.id;
+        prodTitle.value = product.title;
+        prodCategory.value = product.category;
+        prodBadge.value = product.badge || '';
+        prodImage.value = product.image;
+        prodLink.value = product.link;
+        prodDesc.value = product.description;
+      } else {
+        productModalTitle.textContent = "Ajouter un produit";
+        productIdInput.value = '';
+      }
+      adminModal.classList.add('hidden');
+      productModal.classList.remove('hidden');
+    }
+
+    btnAddProductAdminBar.addEventListener('click', () => openProductModal());
+    btnAddNewProductModal.addEventListener('click', () => openProductModal());
+    btnCloseProductModal.addEventListener('click', () => productModal.classList.add('hidden'));
+
+    productForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = productIdInput.value;
+      const newProd = {
+        id: id ? id : Date.now().toString(),
+        title: prodTitle.value.trim(),
+        category: prodCategory.value,
+        badge: prodBadge.value.trim(),
+        image: prodImage.value.trim(),
+        link: prodLink.value.trim(),
+        description: prodDesc.value.trim()
+      };
+
+      if (id) {
+        const index = products.findIndex(p => p.id === id);
+        if (index !== -1) products[index] = newProd;
+      } else {
+        products.unshift(newProd);
+      }
+
+      localStorage.setItem('walacouper_products', JSON.stringify(products));
+      productModal.classList.add('hidden');
+      renderProducts();
+      renderAdminProductsList();
+    });
+
+    window.editProduct = function(id) {
+      const p = products.find(prod => prod.id === id);
+      if (p) openProductModal(p);
+    };
+
+    window.deleteProduct = function(id) {
+      if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
+        products = products.filter(p => p.id !== id);
+        localStorage.setItem('walacouper_products', JSON.stringify(products));
+        renderProducts();
+        renderAdminProductsList();
+      }
+    };
+
+    // Export JSON pour GitHub
+    btnExportJSON.addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(products, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "walacouper-products.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+
+    btnGitHubHelp.addEventListener('click', () => {
+      alert("Pour mettre à jour votre site sur GitHub :\n1. Modifiez votre fichier index.html ou vos produits.\n2. Poussez les modifications sur votre dépôt GitHub.\n3. GitHub se chargera automatiquement de mettre à jour le site en ligne.");
+    });
+
+    // Filtres et Recherche
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderProducts();
+    });
+
+    categoryPills.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryPills.forEach(b => {
+          b.classList.remove('bg-[#0f294a]', 'text-white', 'shadow-sm');
+          b.classList.add('bg-slate-100', 'text-slate-700');
+        });
+        btn.classList.remove('bg-slate-100', 'text-slate-700');
+        btn.classList.add('bg-[#0f294a]', 'text-white', 'shadow-sm');
+
+        currentCategory = btn.getAttribute('data-category');
+        renderProducts();
+      });
+    });
+
+    // Lancement au chargement
+    initApp();
+  </script>
 </body>
 </html>
